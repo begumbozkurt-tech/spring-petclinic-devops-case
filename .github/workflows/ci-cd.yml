@@ -46,3 +46,23 @@ jobs:
         run: |
           helm upgrade --install spring-petclinic-release ./petclinic-chart \
             --set mysql.rootPassword=${{ secrets.MYSQL_ROOT_PASSWORD }}
+
+      - name: Uygulama ve MySQL Durumunu Kontrol Et
+        run: |
+          echo "--- Pod Durumları ---"
+          kubectl get pods
+          
+          echo "--- Servis Durumları ---"
+          kubectl get services
+
+          echo "--- MySQL Logları Kontrolü ---"
+          kubectl logs deployment/spring-petclinic-release-mysql --tail=50 || true
+
+          echo "--- Spring Boot Logları Kontrolü ---"
+          kubectl logs deployment/spring-petclinic-release --tail=50 || true
+
+      - name: Arayüzü (HTTP) Test Et
+        run: |
+          kubectl port-forward svc/spring-petclinic-release 8080:8080 &
+          sleep 5
+          curl -I http://localhost:8080
