@@ -47,6 +47,11 @@ jobs:
           helm upgrade --install spring-petclinic-release ./petclinic-chart \
             --set mysql.rootPassword=${{ secrets.MYSQL_ROOT_PASSWORD }}
 
+      - name: Deployment Sürecinin Tamamlanmasını Bekle
+        run: |
+          kubectl rollout status deployment/mysql-deployment --timeout=120s
+          kubectl rollout status deployment/petclinic-deployment --timeout=120s
+
       - name: Uygulama ve MySQL Durumunu Kontrol Et
         run: |
           echo "--- Pod Durumları ---"
