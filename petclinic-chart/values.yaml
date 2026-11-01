@@ -1,0 +1,22 @@
+replicaCount: 1
+
+mysql:
+  image: "mysql:9.7"
+  rootPassword: "" #
+  imagePullPolicy: "IfNotPresent"
+  port: 3306
+  user: "petclinic"
+  password: "petclinic"
+  database: "petclinic"
+
+petclinic:
+  image: "beguk8s/petclinic:v1"
+  imagePullPolicy: "Always"
+  port: 8080
+  env:
+    springProfilesActive: "mysql"
+    datasourceUrl: "jdbc:mysql://mysql-service:3306/petclinic?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
+    datasourceUsername: "petclinic"
+    datasourcePassword: "petclinic"
+    springJpaHibernateDdlAuto: "update"
+    springSqlInitMode: "always"

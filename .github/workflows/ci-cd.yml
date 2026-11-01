@@ -1,0 +1,40 @@
+name: Petclinic CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+z
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kodlari Indir
+        uses: actions/checkout@v4
+
+      - name: JDK 17 Kur
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Test et ve Build Yap
+        run: ./mvnw clean package -DskipTests
+
+      - name: Docker Hub'a Giris Yap
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Docker Imajini Olustur ve Gonder
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/petclinic:v1
+
+      - name: Deploy to Kubernetes via Helm
+        run: |
+          helm upgrade --install spring-petclinic-release ./petclinic-chart \
+            --set mysql.rootPassword=${{ secrets.MYSQL_ROOT_PASSWORD }}

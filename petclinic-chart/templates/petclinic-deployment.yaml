@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: petclinic-deployment
+  labels:
+    app: petclinic
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: petclinic
+  template:
+    metadata:
+      labels:
+        app: petclinic
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: petclinic
+          image: "{{ .Values.petclinic.image }}"
+          imagePullPolicy: "{{ .Values.petclinic.imagePullPolicy }}"
+          ports:
+            - containerPort: {{ .Values.petclinic.port }}
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "{{ .Values.petclinic.env.springProfilesActive }}"
+            - name: SPRING_DATASOURCE_URL
+              value: "{{ .Values.petclinic.env.datasourceUrl }}"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "{{ .Values.petclinic.env.datasourceUsername }}"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "{{ .Values.petclinic.env.datasourcePassword }}"
+            - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+              value: "{{ .Values.petclinic.env.springJpaHibernateDdlAuto }}"
+            - name: SPRING_SQL_INIT_MODE
+              value: "{{ .Values.petclinic.env.springSqlInitMode }}"
