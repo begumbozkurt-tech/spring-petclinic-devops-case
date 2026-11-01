@@ -56,13 +56,13 @@ jobs:
           kubectl get services
 
           echo "--- MySQL Logları Kontrolü ---"
-          kubectl logs deployment/spring-petclinic-release-mysql --tail=50 || true
+          kubectl logs deployment/mysql-deployment --tail=50 || true
 
           echo "--- Spring Boot Logları Kontrolü ---"
-          kubectl logs deployment/spring-petclinic-release --tail=50 || true
+          kubectl logs deployment/petclinic-deployment --tail=50 || true
 
       - name: Arayüzü (HTTP) Test Et
         run: |
-          kubectl port-forward svc/spring-petclinic-release 8080:8080 &
+          kubectl port-forward svc/petclinic-service 8080:8080 &
           sleep 5
           curl -I http://localhost:8080
