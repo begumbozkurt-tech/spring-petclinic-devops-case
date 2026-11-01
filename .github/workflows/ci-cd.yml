@@ -69,5 +69,5 @@ jobs:
       - name: Arayüzü (HTTP) Test Et
         run: |
           kubectl port-forward svc/petclinic-service 8080:8080 &
-          sleep 5
+          sleep 25
           curl -I http://localhost:8080
