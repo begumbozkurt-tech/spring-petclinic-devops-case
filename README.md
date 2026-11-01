@@ -1,181 +1,143 @@
-# Spring PetClinic Sample Application [![Build Status](https://github.com/spring-projects/spring-petclinic/actions/workflows/maven-build.yml/badge.svg)](https://github.com/spring-projects/spring-petclinic/actions/workflows/maven-build.yml)[![Build Status](https://github.com/spring-projects/spring-petclinic/actions/workflows/gradle-build.yml/badge.svg)](https://github.com/spring-projects/spring-petclinic/actions/workflows/gradle-build.yml)
+# DevOps Case Study - Step 1: Dockerization & Local Setup
 
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/spring-projects/spring-petclinic) [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=7517918)
+Bu döküman, Spring Petclinic uygulaması üzerine uygulanan beş adımlık DevOps case çalışmasının ilk aşamasını, yani uygulamanın Dockerize edilmesi ve yerel ortamda docker-compose ile çalıştırılmasını kapsamaktadır.
 
-## Understanding the Spring Petclinic application with a few diagrams
+## Case Çalışması Genel Adımları
 
-See the presentation here:  
-[Spring Petclinic Sample Application (legacy slides)](https://speakerdeck.com/michaelisvy/spring-petclinic-sample-application?slide=20)
+1. **Dockerize Etme ve Yerel Çalıştırma:** Uygulama ve veritabanı için Dockerfile ve Docker Compose yapılandırmasının hazırlanması.
+2. **Kubernetes Ortamı:** Minikube veya Kind kullanılarak yerel bir Kubernetes cluster kurulumunun gerçekleştirilmesi.
+3. **Kubernetes Manifestleri:** Uygulama ve veritabanı için Kubernetes deployment, service ve diğer manifest dosyalarının hazırlanması.
+4. **Helm Chart veya Kustomize:** Dağıtım süreçlerinin şablonlaştırılması.
+5. **CI/CD Pipeline:** Otomatik test, derleme ve dağıtım süreçlerinin kurgulanması.
 
-> **Note:** These slides refer to a legacy, pre–Spring Boot version of Petclinic and may not reflect the current Spring Boot–based implementation.  
-> For up-to-date information, please refer to this repository and its documentation.
+## Adım 1: Docker ve Docker Compose Yapılandırması
 
+## Çalıştırma Komutları
 
-## Run Petclinic locally
-
-Spring Petclinic is a [Spring Boot](https://spring.io/guides/gs/spring-boot) application built using [Maven](https://spring.io/guides/gs/maven/) or [Gradle](https://spring.io/guides/gs/gradle/).
-Java 17 or later is required for the build, and the application can run with Java 17 or newer.
-
-You first need to clone the project locally:
+Uygulamayı ve veritabanını Docker Compose kullanarak yerel ortamda ayağa kaldırmak için proje ana dizininde aşağıdaki komutu çalıştırınız:
 
 ```bash
-git clone https://github.com/spring-projects/spring-petclinic.git
-cd spring-petclinic
+docker compose up --build
 ```
-If you are using Maven, you can start the application on the command-line as follows:
 
+Servisleri durdurmak ve temizlemek icin:
 ```bash
-./mvnw spring-boot:run
-```
-With Gradle, the command is as follows:
-
-```bash
-./gradlew bootRun
+docker compose down
 ```
 
-You can then access the Petclinic at <http://localhost:8080/>.
+Servisler hazır olduktan sonra uygulamaya aşağıdaki adres üzerinden erişebilirsiniz:
 
-<img width="1042" alt="petclinic-screenshot" src="https://cloud.githubusercontent.com/assets/838318/19727082/2aee6d6c-9b8e-11e6-81fe-e889a5ddfded.png">
+* **Uygulama URL:** `http://localhost:8081`
 
-You can, of course, run Petclinic in your favorite IDE.
-See below for more details.
+## Adım 2: Kubernetes Kümesi Kurulumu ve Dağıtımı
 
-## Building a Container
+Bu adımda, yerel geliştirme ortamında konteyner orchestrasyonu sağlamak amacıyla Minikube tercih edilmiş ve uygulama ile veritabanı manifestoları cluster üzerine uygulanmıştır.
 
-There is no `Dockerfile` in this project. You can build a container image (if you have a docker daemon) using the Spring Boot build plugin:
+### Bileşenler ve Akış
 
-```bash
-./mvnw spring-boot:build-image
+1. **Minikube Başlatma:** Docker driver kullanılarak yerel Kubernetes cluster ortamı oluşturulur.
+2. **Image Yükleme:** Yerel ortamda bulunan uygulama imajı (`petclinic:v1`) ve MySQL imajı (`mysql:9.7`) Minikube ortamına yüklenir.
+3. **Manifest Uygulama:** Deployment ve Service konfigürasyonlarını içeren `petclinic.yaml` dosyası cluster üzerine uygulanır.
+4. **Erişim:** Uygulama NodePort servisi aracılığıyla dış dünyaya açılır.
+
+## Çalıştırma Talimatları
+
+Yerel Kubernetes ortamını kurmak, imajları aktarmak ve uygulamayı otomatize edilmiş bir şekilde ayağa kaldırmak için hazırlanan bash dosyasını kullanabilirsiniz.
+
+1. Çalıştırma izni verin:
+   ```bash
+   chmod +x deploy-petclinic.sh
+   ```
+
+2. Çalıştırın:
+   ```bash
+   ./deploy-petclinic.sh
+   ```
+
+Küme içerisine kubectl apply -f petclinic.yaml ile yüklediğiniz deployment, service ve diğer manifest dosyalarını tamamen kaldırmak için:
+   ```bash
+   kubectl delete -f petclinic.yaml
+   ```
+
+
+## Adım 3: Helm Chart ile Kubernetes Dağıtımı Uygulama ve veritabanı bileşenleri
+
+
+## 📁 Helm Chart Yapısı (`petclinic-chart`)
+
+Dağıtım için kullanılan Helm chart dizin yapısı ve bileşenleri aşağıda açıklanmıştır:
+
+```text
+petclinic-chart/
+├── Chart.yaml              # Helm chart meta verilerini barındırır.
+├── values.yaml             # Dinamik konfigürasyon değişkenleri (replica, imaj, env vb.).
+└── templates/
+    ├── mysql-deployment.yaml     # MySQL veritabanı deployment konfigürasyonu.
+    ├── mysql-service.yaml        # MySQL servis (ClusterIP vb.) tanımı.
+    ├── mysql-pvc.yaml            # Veri kalıcılığı için PersistentVolumeClaim.
+    ├── mysql-secret.yaml         # Hassas veriler (şifreler vb.) için Secret nesnesi.
+    ├── petclinic-deployment.yaml # Spring Petclinic uygulama deployment tanımı.
+    ├── petclinic-configmap.yaml  # Uygulama çalışma zamanı konfigürasyonları.
+    └── petclinic-ingress.yaml    # Ingress yönlendirme ve dışarıya açma kuralları.
 ```
 
-## Running the Container Image
+1. Çalıştırma izni verin:
+   ```bash
+   chmod +x deploy.sh
+   ```
+2. Çalıştırın:
+   ```bash
+   ./deploy.sh
+   ```
+3. Gerekirse ayrı terminalde çalıştırın:
+   ```bash
+   kubectl port-forward svc/petclinic-service 8080:8080
+   ```
+* **Uygulama URL:** `http://localhost:8080`
 
-```bash
-docker images | grep petclinic
-docker run -p 8080:8080 docker.io/library/spring-petclinic:latest
-```
+Helm release'ini silmek için:
 
-## In case you find a bug/suggested improvement for Spring Petclinic
+   ```bash
+   helm uninstall petclinic-release
+   ```
+Minikube kümesini durdurmak isterseniz (verileriniz silinmez):
+   ```bash
+   minikube stop
+   ```
+   
+## Adım 4: GitHub Actions ile CI/CD Pipeline Yapılandırması
 
-Our issue tracker is available [here](https://github.com/spring-projects/spring-petclinic/issues).
+Bu adımda, geliştirilen kodun `main` dalına (branch) gönderilmesiyle (push) tetiklenen; derleme, Docker Hub'a imaj yükleme, geçici bir Kind cluster ayağa kaldırma ve Helm ile Kubernetes ortamına dağıtma adımlarını içeren otomatize edilmiş bir iş akışı kurulmuştur.
 
-## Database configuration
+### Repository Secrets Yapılandırması
 
-In its default configuration, Petclinic uses an in-memory database (H2) which
-gets populated at startup with data. The h2 console is exposed at `http://localhost:8080/h2-console`,
-and it is possible to inspect the content of the database using the `jdbc:h2:mem:<uuid>` URL. The UUID is printed at startup to the console.
+Pipeline'ın güvenli bir şekilde çalışabilmesi ve hassas verilere erişebilmesi için GitHub repository ayarlarından (`Settings > Secrets and variables > Actions`) şu secret'lar tanımlanmıştır:
 
-A similar setup is provided for MySQL and PostgreSQL if a persistent database configuration is needed. Note that whenever the database type changes, the app needs to run with a different profile: `spring.profiles.active=mysql` for MySQL or `spring.profiles.active=postgres` for PostgreSQL. See the [Spring Boot documentation](https://docs.spring.io/spring-boot/how-to/properties-and-configuration.html#howto.properties-and-configuration.set-active-spring-profiles) for more detail on how to set the active profile.
+* `DOCKER_HUB_USERNAME`: Docker Hub kullanıcı adınız.
+* `DOCKER_HUB_ACCESS_TOKEN`: Docker Hub erişim belirteci (token).
+* `MYSQL_USER`: Veritabanı kullanıcı adı.
+* `MYSQL_PASSWORD`: Veritabanı şifresi.
+* `MYSQL_ROOT_PASSWORD`: MySQL kök (root) şifresi.
 
-You can start MySQL or PostgreSQL locally with whatever installer works for your OS or use docker:
+### Pipeline Adımları ve Akış
 
-```bash
-docker run -e MYSQL_USER=petclinic -e MYSQL_PASSWORD=petclinic -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=petclinic -p 3306:3306 mysql:9.7
-```
+1. **Checkout:** Kodların runner ortamına indirilmesi.
+2. **Java Kurulumu:** Proje için JDK 17 (Temurin dağıtımı) ortamının hazırlanması ve Maven önbelleklemesinin (cache) aktifleştirilmesi.
+3. **Build İşlemi:** Maven wrapper kullanılarak uygulamanın paketlenmesi.
+4. **Docker Hub Girişi:** Tanımlanan secret'lar kullanılarak Docker Hub kimlik doğrulaması.
+5. **İmaj Oluşturma ve Gönderme:** Uygulama Docker imajının (`petclinic:v1`) oluşturularak Docker Hub'a gönderilmesi.
+6. **Kind Cluster Kurulumu:** Test amaçlı izole bir Kubernetes ortamının (`helm/kind-action`) ayağa kaldırılması.
+7. **Helm ile Dağıtım (CD):** Hazırlanan Helm chart (`./petclinic-chart`) kullanılarak veritabanı ve uygulama bileşenlerinin Kubernetes cluster'ına kurulması, şifre ve kullanıcı adı gibi hassas verilerin `--set` parametreleriyle beslenmesi.
+8. **Doğrulama ve Test:** Pod ve servis durumlarının kontrol edilmesi, logların incelenmesi ve `port-forward` ile arayüzün (`curl`) test edilmesi.
 
-or
+## Pipeline Dosyası (`ci-cd.yml`)
 
-```bash
-docker run -e POSTGRES_USER=petclinic -e POSTGRES_PASSWORD=petclinic -e POSTGRES_DB=petclinic -p 5432:5432 postgres:18.4
-```
+Proje kök dizininde `.github/workflows/ci-cd.yml` yolunda bulunan pipeline yapılandırması
 
-Further documentation is provided for [MySQL](https://github.com/spring-projects/spring-petclinic/blob/main/src/main/resources/db/mysql/petclinic_db_setup_mysql.txt)
-and [PostgreSQL](https://github.com/spring-projects/spring-petclinic/blob/main/src/main/resources/db/postgres/petclinic_db_setup_postgres.txt).
-
-Instead of vanilla `docker` you can also use the provided `docker-compose.yml` file to start the database containers. Each one has a service named after the Spring profile:
-
-```bash
-docker compose up mysql
-```
-
-or
-
-```bash
-docker compose up postgres
-```
-
-## Test Applications
-
-At development time we recommend you use the test applications set up as `main()` methods in `PetClinicIntegrationTests` (using the default H2 database and also adding Spring Boot Devtools), `MySqlTestApplication` and `PostgresIntegrationTests`. These are set up so that you can run the apps in your IDE to get fast feedback and also run the same classes as integration tests against the respective database. The MySql integration tests use Testcontainers to start the database in a Docker container, and the Postgres tests use Docker Compose to do the same thing.
-
-## Compiling the CSS
-
-There is a `petclinic.css` in `src/main/resources/static/resources/css`. It was generated from the `petclinic.scss` source, combined with the [Bootstrap](https://getbootstrap.com/) library. If you make changes to the `scss`, or upgrade Bootstrap, you will need to re-compile the CSS resources using the Maven profile "css", i.e. `./mvnw package -P css`. There is no build profile for Gradle to compile the CSS.
-
-## Working with Petclinic in your IDE
-
-### Prerequisites
-
-The following items should be installed in your system:
-
-- Java 17 or newer (full JDK, not a JRE)
-- [Git command line tool](https://help.github.com/articles/set-up-git)
-- Your preferred IDE
-  - Eclipse with the m2e plugin. Note: when m2e is available, there is a m2 icon in `Help -> About` dialog. If m2e is
-  not there, follow the installation process [here](https://www.eclipse.org/m2e/)
-  - [Spring Tools Suite](https://spring.io/tools) (STS)
-  - [IntelliJ IDEA](https://www.jetbrains.com/idea/)
-  - [VS Code](https://code.visualstudio.com)
-
-### Steps
-
-1. On the command line run:
-
-    ```bash
-    git clone https://github.com/spring-projects/spring-petclinic.git
-    ```
-
-1. Inside Eclipse or STS:
-
-    Open the project via `File -> Import -> Maven -> Existing Maven project`, then select the root directory of the cloned repo.
-
-    Then either build on the command line `./mvnw generate-resources` or use the Eclipse launcher (right-click on project and `Run As -> Maven install`) to generate the CSS. Run the application's main method by right-clicking on it and choosing `Run As -> Java Application`.
-
-1. Inside IntelliJ IDEA:
-
-    In the main menu, choose `File -> Open` and select the Petclinic [pom.xml](pom.xml). Click on the `Open` button.
-
-    - CSS files are generated from the Maven build. You can build them on the command line `./mvnw generate-resources` or right-click on the `spring-petclinic` project then `Maven -> Generates sources and Update Folders`.
-
-    - A run configuration named `PetClinicApplication` should have been created for you if you're using a recent Ultimate version. Otherwise, run the application by right-clicking on the `PetClinicApplication` main class and choosing `Run 'PetClinicApplication'`.
-
-1. Navigate to the Petclinic
-
-    Visit [http://localhost:8080](http://localhost:8080) in your browser.
-
-## Looking for something in particular?
-
-|Spring Boot Configuration | Class or Java property files  |
-|--------------------------|---|
-|The Main Class | [PetClinicApplication](https://github.com/spring-projects/spring-petclinic/blob/main/src/main/java/org/springframework/samples/petclinic/PetClinicApplication.java) |
-|Properties Files | [application.properties](https://github.com/spring-projects/spring-petclinic/blob/main/src/main/resources) |
-|Caching | [CacheConfiguration](https://github.com/spring-projects/spring-petclinic/blob/main/src/main/java/org/springframework/samples/petclinic/system/CacheConfiguration.java) |
-
-## Interesting Spring Petclinic branches and forks
-
-The Spring Petclinic "main" branch in the [spring-projects](https://github.com/spring-projects/spring-petclinic)
-GitHub org is the "canonical" implementation based on Spring Boot and Thymeleaf. There are
-[quite a few forks](https://spring-petclinic.github.io/docs/forks.html) in the GitHub org
-[spring-petclinic](https://github.com/spring-petclinic). If you are interested in using a different technology stack to implement the Pet Clinic, please join the community there.
-
-## Interaction with other open-source projects
-
-One of the best parts about working on the Spring Petclinic application is that we have the opportunity to work in direct contact with many Open Source projects. We found bugs/suggested improvements on various topics such as Spring, Spring Data, Bean Validation and even Eclipse! In many cases, they've been fixed/implemented in just a few days.
-Here is a list of them:
-
-| Name | Issue |
-|------|-------|
-| Spring JDBC: simplify usage of NamedParameterJdbcTemplate | [SPR-10256](https://github.com/spring-projects/spring-framework/issues/14889) and [SPR-10257](https://github.com/spring-projects/spring-framework/issues/14890) |
-| Bean Validation / Hibernate Validator: simplify Maven dependencies and backward compatibility |[HV-790](https://hibernate.atlassian.net/browse/HV-790) and [HV-792](https://hibernate.atlassian.net/browse/HV-792) |
-| Spring Data: provide more flexibility when working with JPQL queries | [DATAJPA-292](https://github.com/spring-projects/spring-data-jpa/issues/704) |
-
-## Contributing
-
-The [issue tracker](https://github.com/spring-projects/spring-petclinic/issues) is the preferred channel for bug reports, feature requests and submitting pull requests.
-
-For pull requests, editor preferences are available in the [editor config](.editorconfig) for easy use in common text editors. Read more and download plugins at <https://editorconfig.org>. All commits must include a __Signed-off-by__ trailer at the end of each commit message to indicate that the contributor agrees to the Developer Certificate of Origin.
-For additional details, please refer to the blog post [Hello DCO, Goodbye CLA: Simplifying Contributions to Spring](https://spring.io/blog/2025/01/06/hello-dco-goodbye-cla-simplifying-contributions-to-spring).
-
-## License
-
-The Spring PetClinic sample application is released under version 2.0 of the [Apache License](https://www.apache.org/licenses/LICENSE-2.0).
+Boş bir commit atarak (yani kod değişikliği yapmadan) GitHub Actions pipeline'ını manuel olarak tetikleme:
+   ```bash
+   git commit --allow-empty -m "ci: trigger pipeline manually"
+   ```
+   ```bash
+   git push origin main
+   ```

@@ -2,7 +2,7 @@ replicaCount: 1
 
 mysql:
   image: "mysql:9.7"
-  rootPassword: "" #
+  rootPassword: "rootpassword" #
   imagePullPolicy: "IfNotPresent"
   port: 3306
   user: "petclinic"
