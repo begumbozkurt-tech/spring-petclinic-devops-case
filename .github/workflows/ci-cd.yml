@@ -34,6 +34,14 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/petclinic:v1
 
+      - name: Kind Kur (Kind)
+        uses: helm/kind-action@v1.9.0
+
+      - name: Kind Durumunu Kontrol Et
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+
       - name: Deploy to Kubernetes via Helm
         run: |
           helm upgrade --install spring-petclinic-release ./petclinic-chart \
