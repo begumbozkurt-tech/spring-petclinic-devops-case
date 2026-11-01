@@ -39,8 +39,8 @@ spec:
                   name: mysql-secret
                   key: password
           readinessProbe:
-            exec:
-              command: [ "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$(MYSQL_ROOT_PASSWORD)" ]
+            tcpSocket:
+              port: 3306
             initialDelaySeconds: 20
             periodSeconds: 10
             timeoutSeconds: 5
