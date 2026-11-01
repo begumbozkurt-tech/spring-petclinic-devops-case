@@ -45,7 +45,9 @@ jobs:
       - name: Deploy to Kubernetes via Helm
         run: |
           helm upgrade --install spring-petclinic-release ./petclinic-chart \
-            --set mysql.rootPassword=${{ secrets.MYSQL_ROOT_PASSWORD }}
+            --set mysql.user="${{ secrets.MYSQL_USER }}" \
+            --set mysql.password="${{ secrets.MYSQL_PASSWORD }}" \
+            --set mysql.rootPassword="${{ secrets.MYSQL_ROOT_PASSWORD }}"
 
       - name: Deployment Sürecinin Tamamlanmasını Bekle
         run: |

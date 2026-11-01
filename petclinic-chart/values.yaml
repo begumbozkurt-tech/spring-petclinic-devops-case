@@ -8,6 +8,8 @@ mysql:
   user: "petclinic"
   password: "petclinic"
   database: "petclinic"
+  persistence:
+    size: 1Gi
 
 petclinic:
   image: "beguk8s/petclinic:v1"

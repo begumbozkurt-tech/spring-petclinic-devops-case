@@ -28,9 +28,15 @@ spec:
             - name: SPRING_DATASOURCE_URL
               value: "{{ .Values.petclinic.env.datasourceUrl }}"
             - name: SPRING_DATASOURCE_USERNAME
-              value: "{{ .Values.petclinic.env.datasourceUsername }}"
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: username
             - name: SPRING_DATASOURCE_PASSWORD
-              value: "{{ .Values.petclinic.env.datasourcePassword }}"
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: password
             - name: SPRING_JPA_HIBERNATE_DDL_AUTO
               value: "{{ .Values.petclinic.env.springJpaHibernateDdlAuto }}"
             - name: SPRING_SQL_INIT_MODE

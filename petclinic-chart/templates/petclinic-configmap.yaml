@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: petclinic-configmap
+data:
+  SPRING_PROFILES_ACTIVE: "{{ .Values.petclinic.env.springProfilesActive }}"
+  DATASOURCE_URL: "{{ .Values.petclinic.env.datasourceUrl }}"
+  DATASOURCE_USERNAME: "{{ .Values.petclinic.env.datasourceUsername }}"
