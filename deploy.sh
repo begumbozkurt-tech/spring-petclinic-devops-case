@@ -20,7 +20,7 @@ kubectl delete service mysql-service petclinic-service --ignore-not-found=true
 
 echo "[4/6] Varsa mevcut mysql-pvc Helm'e tanımlanıyor, yoksa bırakılıyor."
 if kubectl get pvc mysql-pvc &>/dev/null; then
-    echo "Mevcut mysql-pvc bulundu, Helm sahiplik etiketleri ekleniyor..."
+    echo "Mevcut mysql-pvc bulundu, Helm sahiplik etiketleri ekleniyor"
     kubectl label pvc mysql-pvc app.kubernetes.io/managed-by=Helm --overwrite
     kubectl annotate pvc mysql-pvc meta.helm.sh/release-name=petclinic-release --overwrite
     kubectl annotate pvc mysql-pvc meta.helm.sh/release-namespace=default --overwrite
